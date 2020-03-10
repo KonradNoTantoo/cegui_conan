@@ -32,7 +32,7 @@ class CeguiConan(ConanFile):
         if self.options.lua_scripting:
             self.requires("toluapp/1.0.93@utopia/testing")
         if self.options.ogre_renderer:
-            self.requires("ogre/1.12.5@utopia/testing")
+            self.requires("ogre3d/1.12.5@utopia/testing")
 
 
     def source(self):
