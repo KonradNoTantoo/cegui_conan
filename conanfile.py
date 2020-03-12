@@ -52,9 +52,16 @@ link_libraries(${CONAN_LIBS})''')
     def configure_cmake(self):
         cmake = CMake(self)
 
+        if self.options.ogre_renderer:
+            cmake.definitions["CMAKE_CXX_STANDARD"] = "11"
+            cmake.definitions["CMAKE_CXX_STANDARD_REQUIRED"] = "ON"
+            cmake.definitions["CMAKE_CXX_EXTENSIONS"] = "OFF"
+            cmake.definitions["CEGUI_BUILD_RENDERER_OGRE"] = "ON"
+        else:
+            cmake.definitions["CEGUI_BUILD_RENDERER_OGRE"] = "OFF"
+
         cmake.definitions["CEGUI_BUILD_APPLICATION_TEMPLATES"] = "OFF"
         cmake.definitions["CEGUI_BUILD_LUA_MODULE"] = "ON" if self.options.lua_scripting else "OFF"
-        cmake.definitions["CEGUI_BUILD_RENDERER_OGRE"] = "ON" if self.options.ogre_renderer else "OFF"
         cmake.definitions["CEGUI_SAMPLES_ENABLED"] = "OFF"
 
         cmake.configure(source_folder=self.folder_name)
