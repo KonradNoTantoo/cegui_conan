@@ -1,4 +1,4 @@
-# Conan recipe for cegui 0.8.7
+# Conan recipe for cegui v0-8
 
 [![Build Status: Windows](https://ci.appveyor.com/api/projects/status/github/KonradNoTantoo/cegui_conan?svg=true)](https://ci.appveyor.com/project/KonradNoTantoo/cegui-conan)
 

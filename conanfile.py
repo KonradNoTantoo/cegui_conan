@@ -4,7 +4,7 @@ import os
 
 class CeguiConan(ConanFile):
     name = "cegui"
-    version = "0.8.7"
+    version = "0.8.190523"
     license = "MIT"
     author = "konrad"
     url = "https://github.com/KonradNoTantoo/cegui_conan"
@@ -27,6 +27,14 @@ class CeguiConan(ConanFile):
         ("freeimage/3.18.0@utopia/testing"),
     ]
 
+    scm = {
+        "type": "git",
+        "subfolder": folder_name,
+        "url": "https://github.com/cegui/cegui.git",
+        # 2019.05.23 commit on v0-8 branch
+        "revision": "be649b6d582e7f5c613526e33f0bab871c02a4b6",
+        "submodule": "recursive" 
+    }
 
     def requirements(self):
         if self.options.lua_scripting:
@@ -36,8 +44,6 @@ class CeguiConan(ConanFile):
 
 
     def source(self):
-        tarball_path = "http://prdownloads.sourceforge.net/crayzedsgui/{}.tar.bz2".format(self.folder_name)
-        tools.get(tarball_path)
         tools.replace_in_file("{}/CMakeLists.txt".format(self.folder_name), "project(cegui)",
                               '''project(cegui)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -52,17 +58,10 @@ link_libraries(${CONAN_LIBS})''')
     def configure_cmake(self):
         cmake = CMake(self)
 
-        if self.options.ogre_renderer:
-            cmake.definitions["CMAKE_CXX_STANDARD"] = "11"
-            cmake.definitions["CMAKE_CXX_STANDARD_REQUIRED"] = "ON"
-            cmake.definitions["CMAKE_CXX_EXTENSIONS"] = "OFF"
-            cmake.definitions["CEGUI_BUILD_RENDERER_OGRE"] = "ON"
-        else:
-            cmake.definitions["CEGUI_BUILD_RENDERER_OGRE"] = "OFF"
-
         cmake.definitions["CEGUI_BUILD_APPLICATION_TEMPLATES"] = "OFF"
         cmake.definitions["CEGUI_BUILD_LUA_MODULE"] = "ON" if self.options.lua_scripting else "OFF"
         cmake.definitions["CEGUI_SAMPLES_ENABLED"] = "OFF"
+        cmake.definitions["CEGUI_BUILD_RENDERER_OGRE"] = "ON" if self.options.ogre_renderer else "OFF"
 
         cmake.configure(source_folder=self.folder_name)
         return cmake
