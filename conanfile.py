@@ -14,8 +14,26 @@ class CeguiConan(ConanFile):
     # TODO handle static builds
     # TODO handle python scripting (needs boost_python lib)
     # TODO handle extra renderers, image loaders and XML parsers
-    options = {"lua_scripting": [True, False], "ogre_renderer": [True, False]}
-    default_options = {"lua_scripting": True, "ogre_renderer": True}
+    options = {
+        "lua_scripting": [True, False],
+        "ogre_renderer": [True, False],
+        "direct3d9_renderer": [True, False],
+        "direct3d10_renderer": [True, False],
+        "direct3d11_renderer": [True, False],
+        "opengl_renderer": [True, False],
+        "opengl3_renderer": [True, False],
+        "opengles_renderer": [True, False],
+    }
+    default_options = {
+        "lua_scripting": True,
+        "ogre_renderer": True,
+        "direct3d9_renderer": False,
+        "direct3d10_renderer": False,
+        "direct3d11_renderer": False,
+        "opengl_renderer": False,
+        "opengl3_renderer": False,
+        "opengles_renderer": False,
+    }
     generators = "cmake"
     folder_name = "{}-{}".format(name, version)
     boost_version = "1.71.0"
@@ -35,6 +53,14 @@ class CeguiConan(ConanFile):
         "revision": "be649b6d582e7f5c613526e33f0bab871c02a4b6",
         "submodule": "recursive" 
     }
+
+
+    def configure(self):
+        if self.settings.os == "Linux":
+            self.options.direct3d9_renderer = False
+            self.options.direct3d10_renderer = False
+            self.options.direct3d11_renderer = False
+
 
     def requirements(self):
         if self.options.lua_scripting:
@@ -61,7 +87,15 @@ link_libraries(${CONAN_LIBS})''')
         cmake.definitions["CEGUI_BUILD_APPLICATION_TEMPLATES"] = "OFF"
         cmake.definitions["CEGUI_BUILD_LUA_MODULE"] = "ON" if self.options.lua_scripting else "OFF"
         cmake.definitions["CEGUI_SAMPLES_ENABLED"] = "OFF"
+ 
+        cmake.definitions["CEGUI_BUILD_RENDERER_NULL"] = "ON"
         cmake.definitions["CEGUI_BUILD_RENDERER_OGRE"] = "ON" if self.options.ogre_renderer else "OFF"
+        cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D9"] = "ON" if self.options.direct3d9_renderer else "OFF"
+        cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D10"] = "ON" if self.options.direct3d10_renderer else "OFF"
+        cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D11"] = "ON" if self.options.direct3d11_renderer else "OFF"
+        cmake.definitions["CEGUI_BUILD_RENDERER_OPENGL"] = "ON" if self.options.opengl_renderer else "OFF"
+        cmake.definitions["CEGUI_BUILD_RENDERER_OPENGL3"] = "ON" if self.options.opengl3_renderer else "OFF"
+        cmake.definitions["CEGUI_BUILD_RENDERER_OPENGLES"] = "ON" if self.options.opengles_renderer else "OFF"
 
         cmake.configure(source_folder=self.folder_name)
         return cmake
@@ -79,13 +113,31 @@ link_libraries(${CONAN_LIBS})''')
             "CEGUIBase-0",
             "CEGUICommonDialogs-0",
             "CEGUICoreWindowRendererSet",
-            "CEGUIDirect3D9Renderer-0",
-            "CEGUIDirect3D10Renderer-0",
             "CEGUIFreeImageImageCodec",
             "CEGUILuaScriptModule-0",
-            "CEGUIOgreRenderer-0",
             "CEGUIXercesParser",
+            "CEGUINullRenderer-0",
         ]
-        self.cpp_info.libs = [lib + "_d" if self.settings.build_type == "Debug" else lib for lib in libs]
+
+        if self.options.ogre_renderer:
+            libs.append("CEGUIOgreRenderer-0")
+        if self.options.direct3d9_renderer:
+            libs.append("CEGUIDirect3D9Renderer-0")
+        if self.options.direct3d10_renderer:
+            libs.append("CEGUIDirect3D10Renderer-0")
+        if self.options.direct3d11_renderer:
+            libs.append("CEGUIDirect3D11Renderer-0")
+        if self.options.opengl_renderer:
+            libs.append("CEGUIOpenGLRenderer-0")
+        if self.options.opengl3_renderer:
+            libs.append("CEGUIOpenGL3Renderer-0")
+        if self.options.opengles_renderer:
+            libs.append("CEGUIOpenGLESRenderer-0")
+
+        if self.settings.compiler == "Visual Studio" and self.settings.build_type == "Debug":
+            self.cpp_info.libs = [lib + "_d" for lib in libs]
+        else:
+            self.cpp_info.libs = libs
+
         self.cpp_info.includedirs = [os.path.join("include", "cegui-0")]
 
