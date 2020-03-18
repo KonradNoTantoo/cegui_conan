@@ -112,10 +112,7 @@ link_libraries(${CONAN_LIBS})''')
         libs = [
             "CEGUIBase-0",
             "CEGUICommonDialogs-0",
-            "CEGUICoreWindowRendererSet",
-            "CEGUIFreeImageImageCodec",
             "CEGUILuaScriptModule-0",
-            "CEGUIXercesParser",
             "CEGUINullRenderer-0",
         ]
 
