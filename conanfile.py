@@ -51,15 +51,15 @@ class CeguiConan(ConanFile):
         "url": "https://github.com/cegui/cegui.git",
         # 2019.05.23 commit on v0-8 branch
         "revision": "be649b6d582e7f5c613526e33f0bab871c02a4b6",
-        "submodule": "recursive" 
+        "submodule": "recursive"
     }
 
 
     def configure(self):
-        if self.settings.os == "Linux":
-            self.options.direct3d9_renderer = False
-            self.options.direct3d10_renderer = False
-            self.options.direct3d11_renderer = False
+        if self.settings.os != "Windows":
+            del self.options.direct3d9_renderer
+            del self.options.direct3d10_renderer
+            del self.options.direct3d11_renderer
 
 
     def requirements(self):
@@ -90,12 +90,26 @@ link_libraries(${CONAN_LIBS})''')
  
         cmake.definitions["CEGUI_BUILD_RENDERER_NULL"] = "ON"
         cmake.definitions["CEGUI_BUILD_RENDERER_OGRE"] = "ON" if self.options.ogre_renderer else "OFF"
-        cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D9"] = "ON" if self.options.direct3d9_renderer else "OFF"
-        cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D10"] = "ON" if self.options.direct3d10_renderer else "OFF"
-        cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D11"] = "ON" if self.options.direct3d11_renderer else "OFF"
+
+        if self.settings.os == "Windows":
+            cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D9"] = "ON" if self.options.direct3d9_renderer else "OFF"
+            cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D10"] = "ON" if self.options.direct3d10_renderer else "OFF"
+            cmake.definitions["CEGUI_BUILD_RENDERER_DIRECT3D11"] = "ON" if self.options.direct3d11_renderer else "OFF"
+
         cmake.definitions["CEGUI_BUILD_RENDERER_OPENGL"] = "ON" if self.options.opengl_renderer else "OFF"
         cmake.definitions["CEGUI_BUILD_RENDERER_OPENGL3"] = "ON" if self.options.opengl3_renderer else "OFF"
         cmake.definitions["CEGUI_BUILD_RENDERER_OPENGLES"] = "ON" if self.options.opengles_renderer else "OFF"
+
+        # some freetype definitions need to be forced:
+        # cegui's FindFreetype.cmake searched for freetype_d
+        # whereas bincrafters debug build type lib is named freetyped
+        if self.settings.build_type == "Debug":
+            ft_lib_name = "freetyped.{}".format("lib" if self.settings.os == "Windows" else "a")
+            ft_lib_path = os.path.join(
+                self.deps_cpp_info["freetype"].rootpath, "lib", ft_lib_name)
+            cmake.definitions["CEGUI_HAS_FREETYPE"] = "ON"
+            cmake.definitions["FREETYPE_LIB_DBG"] = ft_lib_path
+            cmake.definitions["FREETYPE_LIB_STATIC_DBG"] = ft_lib_path
 
         cmake.configure(source_folder=self.folder_name)
         return cmake
@@ -118,12 +132,15 @@ link_libraries(${CONAN_LIBS})''')
 
         if self.options.ogre_renderer:
             libs.append("CEGUIOgreRenderer-0")
-        if self.options.direct3d9_renderer:
-            libs.append("CEGUIDirect3D9Renderer-0")
-        if self.options.direct3d10_renderer:
-            libs.append("CEGUIDirect3D10Renderer-0")
-        if self.options.direct3d11_renderer:
-            libs.append("CEGUIDirect3D11Renderer-0")
+
+        if self.settings.os == "Windows":
+            if self.options.direct3d9_renderer:
+                libs.append("CEGUIDirect3D9Renderer-0")
+            if self.options.direct3d10_renderer:
+                libs.append("CEGUIDirect3D10Renderer-0")
+            if self.options.direct3d11_renderer:
+                libs.append("CEGUIDirect3D11Renderer-0")
+
         if self.options.opengl_renderer:
             libs.append("CEGUIOpenGLRenderer-0")
         if self.options.opengl3_renderer:
