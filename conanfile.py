@@ -4,7 +4,7 @@ import os
 
 class CeguiConan(ConanFile):
     name = "cegui"
-    version = "0.8.190523"
+    version = "0.8.220616"
     license = "MIT"
     author = "konrad"
     url = "https://github.com/KonradNoTantoo/cegui_conan"
@@ -36,21 +36,21 @@ class CeguiConan(ConanFile):
     }
     generators = "cmake"
     folder_name = "{}-{}".format(name, version)
-    boost_version = "1.71.0"
+    boost_version = "1.78.0"
     requires = [
-        ("boost/{}@conan/stable".format(boost_version)),
-        ("xerces-c/3.2.2@bincrafters/stable"),
-        ("libpng/1.6.37@bincrafters/stable", "override"),
-        ("freetype/2.10.0@bincrafters/stable"),
-        ("freeimage/3.18.0@utopia/testing"),
+        ("boost/{}".format(boost_version)),
+        ("xerces-c/3.2.2"),
+        ("libpng/1.6.37", "override"),
+        ("freetype/2.10.4"),
+        ("freeimage/3.18.0"),
     ]
 
     scm = {
         "type": "git",
         "subfolder": folder_name,
         "url": "https://github.com/cegui/cegui.git",
-        # 2019.05.23 commit on v0-8 branch
-        "revision": "be649b6d582e7f5c613526e33f0bab871c02a4b6",
+        # 2022.06.16 commit on v0-8 branch
+        "revision": "9fb2a181d3ecf9678b91d661078c11aecfdaedc9",
         "submodule": "recursive"
     }
 
@@ -66,7 +66,7 @@ class CeguiConan(ConanFile):
         if self.options.lua_scripting:
             self.requires("toluapp/1.0.93@utopia/testing")
         if self.options.ogre_renderer:
-            self.requires("ogre3d/1.12.5@utopia/testing")
+            self.requires("ogre3d/13.4.0@utopia/testing")
 
 
     def source(self):
